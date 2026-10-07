@@ -1,0 +1,10 @@
+# Force Spring to load templates from the file system instead of the classpath
+# Means changes to templates will be picked up immediately
+spring:
+  thymeleaf:
+    prefix: file:./src/main/resources/templates/
+    cache: false
+
+server:
+  port: 8082
+  address: 0.0.0.0
