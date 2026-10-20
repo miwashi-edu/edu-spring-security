@@ -6,48 +6,47 @@
 
 ```text
 .
-├── build.gradle
-└── src
-    ├── main
-    │   ├── java
-    │   │   └── org
-    │   │       └── example
-    │   │           └── App.java
-    │   └── resources
-    │       ├── application-dev.yaml
-    │       ├── application-prod.yaml
-    │       ├── application-stage.yaml
-    │       ├── application.yaml
-    │       └── templates
-    │           ├── error
-    │           │   └── 404.html
-    │           ├── error.html
-    │           └── index.html
-    └── test
-        ├── common
-        │   ├── java
-        │   │   └── org
-        │   │       └── example
-        │   │           ├── IntegrationTest.java
-        │   │           ├── RegressionTest.java
-        │   │           ├── SmokeTest.java
-        │   │           └── UnitTest.java
-        │   └── resources
-        ├── integration
-        │   ├── java
-        │   │   └── org
-        │   │       └── example
-        │   └── resources
-        ├── smoke
-        │   ├── java
-        │   │   └── org
-        │   │       └── example
-        │   └── resources
-        └── unit
-            ├── java
-            │   └── org
-            │       └── example
-            └── resources
+├── gradle.properties
+├── LICENSE
+├── README.md
+├── settings.gradle # defines the project’s name and included modules, and is read before build.gradle
+├── app # A module included from settings.gradle
+│   ├── build.gradle
+│   └── src
+│       ├── main
+│       │   ├── java
+│       │   │   └── org
+│       │   │       └── example
+│       │   │           └── App.java
+│       │   └── resources
+│       │       ├── application-dev.yaml # increase testability by lessening security
+│       │       ├── application-prod.yaml # most often not used
+│       │       ├── application-stage.yaml # increase testability by lessening security
+│       │       ├── application.yaml # production settings
+│       │       └── templates
+│       │           ├── error
+│       │           │   └── 404.html
+│       │           ├── error.html
+│       │           └── index.html
+│       └── test
+│           ├── common # No tests, only common code for testing
+│           │   ├── java
+│           │   │   └── org
+│           │   │       └── example
+│           │   │           ├── IntegrationTest.java
+│           │   │           ├── RegressionTest.java # Interface
+│           │   │           ├── SmokeTest.java
+│           │   │           └── UnitTest.java
+│           │   └── resources # common test resources
+│           ├── integration # Tests for purpose integration testing
+│           │   ├── java
+│           │   └── resources
+│           ├── smoke # Tests for purpose smoke testing
+│           │   ├── java
+│           │   └── resources
+│           └── unit # Tests for purpose unit testing
+│               ├── java
+│               └── resources
 ```
 
 > [!Note]
