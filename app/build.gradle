@@ -4,6 +4,7 @@ plugins {
     id 'org.springframework.boot' version '3.5.6'
     id 'io.spring.dependency-management' version '1.1.7'
 }
+apply from: '../gradle/test-sets.gradle'
 
 repositories {
     mavenCentral()
@@ -29,9 +30,11 @@ dependencies {
 
     // Test
     //testImplementation libs.junit.jupiter
+    testImplementation 'org.junit.jupiter:junit-jupiter'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testImplementation "io.rest-assured:rest-assured:5.5.6"
     testImplementation "io.rest-assured:json-schema-validator:5.5.6"
+    testImplementation 'org.mockito:mockito-junit-jupiter'
 }
 
 java {
@@ -44,7 +47,7 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
-tasks.register('bootDev', JavaExec) {
+tasks.register('bootRunDev', JavaExec) {
     group = 'application'
     description = 'Runs the Spring Boot application with DEV environment'
 
@@ -52,4 +55,14 @@ tasks.register('bootDev', JavaExec) {
     mainClass = bootRun.mainClass
 
     environment 'SPRING_PROFILES_ACTIVE', 'dev'
+}
+
+tasks.register('bootRunStage', JavaExec) {
+    group = 'application'
+    description = 'Runs the Spring Boot application with DEV environment'
+
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = bootRun.mainClass
+
+    environment 'SPRING_PROFILES_ACTIVE', 'stage'
 }
