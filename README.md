@@ -12,9 +12,10 @@ gradle bootDev #An added task to run server in dev environment.
 ```
 
 ### Run Tests
+[!NOTE]
+Call mama
 
 > Requires another shell
-[!NOTE]
 > Note! We don't want the server to reboot every time we run tests,
 > so the thask integrationTest is independent of the main source set.
 
