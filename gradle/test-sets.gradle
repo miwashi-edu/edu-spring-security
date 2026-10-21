@@ -1,0 +1,92 @@
+def hasCommon = file('src/test/common').exists()
+
+if (hasCommon) {
+    sourceSets.create('testCommon') {
+        java.srcDirs = ['src/test/common/java']
+        resources.srcDirs = ['src/test/common/resources']
+    }
+    configurations {
+        testCommonImplementation.extendsFrom testImplementation
+        testCommonRuntimeOnly.extendsFrom testRuntimeOnly
+    }
+}
+
+def commonOutput = hasCommon ? sourceSets.testCommon.output : files()
+
+// White-box: unit tests see main + common
+sourceSets {
+    test {
+        java.srcDirs = ['src/test/unit/java']
+        resources.srcDirs = ['src/test/unit/resources']
+        compileClasspath += commonOutput
+        runtimeClasspath += commonOutput
+    }
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+def suites = [unit: sourceSets.test]
+
+// Black-box: only common + test dependencies, no main
+['smoke', 'integration'].each { name ->
+    if (!file("src/test/${name}").exists()) return
+
+    def ss = sourceSets.create("${name}Test") {
+        java.srcDirs = ["src/test/${name}/java"]
+        resources.srcDirs = ["src/test/${name}/resources"]
+        compileClasspath = commonOutput + configurations["${name}TestCompileClasspath"]
+        runtimeClasspath = output + commonOutput + configurations["${name}TestRuntimeClasspath"]
+    }
+
+    configurations["${name}TestImplementation"].extendsFrom configurations.testImplementation
+    configurations["${name}TestRuntimeOnly"].extendsFrom configurations.testRuntimeOnly
+
+    suites[name] = ss
+
+    def task = tasks.register("${name}Test", Test) {
+        description = "Runs ${name} tests."
+        group = 'verification'
+        testClassesDirs = ss.output.classesDirs
+        classpath = ss.runtimeClasspath
+        useJUnitPlatform()
+        shouldRunAfter tasks.named('test')
+    }
+
+    tasks.named('check') { dependsOn task }
+}
+
+// Regression: @Regression-tagged tests from all suites, one task
+tasks.register('regressionTest', Test) {
+    description = 'Runs @Regression tests from all suites.'
+    group = 'verification'
+    testClassesDirs = files(suites.values().collect { it.output.classesDirs })
+    classpath = files(suites.values().collect { it.runtimeClasspath })
+    useJUnitPlatform { includeTags 'regression' }
+}
+
+// Shared settings for all test tasks
+tasks.withType(Test).configureEach {
+    ['smoke', 'integration'].each { n ->
+        systemProperty "${n}.baseUrl", findProperty("${n}.baseUrl") ?: 'http://localhost:8080'
+    }
+
+    testLogging {
+        events 'started', 'passed', 'skipped', 'failed', 'standardOut', 'standardError'
+        exceptionFormat = 'full'
+        showExceptions = true
+        showCauses = true
+        showStackTraces = true
+        showStandardStreams = true
+    }
+
+    def taskName = name
+    afterSuite { desc, result ->
+        if (!desc.parent) {
+            System.out.println("\n" + taskName + ": " + result.resultType +
+                    " (" + result.testCount + " tests, " + result.successfulTestCount + " passed, " +
+                    result.failedTestCount + " failed, " + result.skippedTestCount + " skipped)")
+        }
+    }
+}
