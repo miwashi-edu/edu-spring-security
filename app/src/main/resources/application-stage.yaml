@@ -1,0 +1,10 @@
+# Activate all actuator endpoints that alre exposed in prod
+management:
+  endpoints:
+    access:
+      default: none
+    web:
+      exposure:
+        include:
+          - health
+          - info

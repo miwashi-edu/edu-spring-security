@@ -5,9 +5,17 @@ if (hasCommon) {
         java.srcDirs = ['src/test/common/java']
         resources.srcDirs = ['src/test/common/resources']
     }
+
     configurations {
         testCommonImplementation.extendsFrom testImplementation
         testCommonRuntimeOnly.extendsFrom testRuntimeOnly
+    }
+
+    // IntelliJ: mark shared test sources as test sources
+    idea {
+        module {
+            testSources.from(sourceSets.testCommon.java.srcDirs)
+        }
     }
 }
 
@@ -36,12 +44,16 @@ def suites = [unit: sourceSets.test]
     def ss = sourceSets.create("${name}Test") {
         java.srcDirs = ["src/test/${name}/java"]
         resources.srcDirs = ["src/test/${name}/resources"]
-        compileClasspath = commonOutput + configurations["${name}TestCompileClasspath"]
-        runtimeClasspath = output + commonOutput + configurations["${name}TestRuntimeClasspath"]
+        compileClasspath = commonOutput +
+                configurations["${name}TestCompileClasspath"]
+        runtimeClasspath = output + commonOutput +
+                configurations["${name}TestRuntimeClasspath"]
     }
 
-    configurations["${name}TestImplementation"].extendsFrom configurations.testImplementation
-    configurations["${name}TestRuntimeOnly"].extendsFrom configurations.testRuntimeOnly
+    configurations["${name}TestImplementation"]
+            .extendsFrom configurations.testImplementation
+    configurations["${name}TestRuntimeOnly"]
+            .extendsFrom configurations.testRuntimeOnly
 
     suites[name] = ss
 
@@ -52,28 +64,43 @@ def suites = [unit: sourceSets.test]
         classpath = ss.runtimeClasspath
         useJUnitPlatform()
         shouldRunAfter tasks.named('test')
+
+        // Black-box: system under test is external, so never skip or cache
+        outputs.upToDateWhen { false }
+        outputs.cacheIf { false }
+        failFast = false
     }
 
-    tasks.named('check') { dependsOn task }
+    tasks.named('check') {
+        dependsOn task
+    }
 }
 
 // Regression: @Regression-tagged tests from all suites, one task
 tasks.register('regressionTest', Test) {
     description = 'Runs @Regression tests from all suites.'
     group = 'verification'
-    testClassesDirs = files(suites.values().collect { it.output.classesDirs })
-    classpath = files(suites.values().collect { it.runtimeClasspath })
-    useJUnitPlatform { includeTags 'regression' }
+    testClassesDirs = files(
+            suites.values().collect { it.output.classesDirs }
+    )
+    classpath = files(
+            suites.values().collect { it.runtimeClasspath }
+    )
+    useJUnitPlatform {
+        includeTags 'regression'
+    }
 }
 
 // Shared settings for all test tasks
 tasks.withType(Test).configureEach {
     ['smoke', 'integration'].each { n ->
-        systemProperty "${n}.baseUrl", findProperty("${n}.baseUrl") ?: 'http://localhost:8080'
+        systemProperty "${n}.baseUrl",
+                findProperty("${n}.baseUrl") ?: 'http://localhost:8080'
     }
 
     testLogging {
-        events 'started', 'passed', 'skipped', 'failed', 'standardOut', 'standardError'
+        events 'passed', 'skipped', 'failed',
+                'standardOut', 'standardError'
         exceptionFormat = 'full'
         showExceptions = true
         showCauses = true
@@ -82,11 +109,10 @@ tasks.withType(Test).configureEach {
     }
 
     def taskName = name
+
     afterSuite { desc, result ->
         if (!desc.parent) {
-            System.out.println("\n" + taskName + ": " + result.resultType +
-                    " (" + result.testCount + " tests, " + result.successfulTestCount + " passed, " +
-                    result.failedTestCount + " failed, " + result.skippedTestCount + " skipped)")
+            System.out.println("\n" + taskName + ": " + result.resultType + " (" + result.testCount + " tests, " + result.successfulTestCount + " passed, " + result.failedTestCount + " failed, " + result.skippedTestCount + " skipped)")
         }
     }
 }

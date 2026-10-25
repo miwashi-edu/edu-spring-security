@@ -5,6 +5,19 @@ spring:
     prefix: file:./src/main/resources/templates/
     cache: false
 
-server:
-  port: 8082
-  address: 0.0.0.0
+# Activate all actuator endpoints
+management:
+  info:
+    env:
+      enabled: true
+  endpoints:
+    access:
+      default: unrestricted
+    web:
+      exposure:
+        include: "*"
+
+info:
+  app:
+    my-var: ${MY_ENV_VAR:undefined}
+    profile: ${spring.profiles.active:default}
