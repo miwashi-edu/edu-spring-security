@@ -10,6 +10,9 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
+/**
+ * Tests targeting endpoint []/actuator/health
+ */
 @ExtendWith(SkipReasonLogger.class)
 public class InfoTest extends SmokeTest {
 

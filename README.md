@@ -2,6 +2,99 @@
 
 ## Overview
 
+> The goal of this tutorial is to provide a comprehensive, JUnit 5-based testing framework and workflow for building secure Spring Boot applications.
+> In addition to configuring application services, mastering the specialized test base classes and annotations is essential for achieving robust, high-value test coverage across unit, smoke, integration, and regression suites.
+
+## Test Architecture
+
+```mermaid
+classDiagram
+    direction TB
+
+    class Tag {
+        <<annotation>>
+        +String value
+    }
+    class ExtendWith {
+        <<annotation>>
+        +Class value
+    }
+    class ExecutionCondition {
+        <<interface>>
+        +evaluateExecutionCondition(ExtensionContext) ConditionEvaluationResult
+    }
+    class TestWatcher {
+        <<interface>>
+        +testAborted(ExtensionContext, Throwable)
+        +testDisabled(ExtensionContext, Optional)
+    }
+    class MockitoExtension {
+        <<extension>>
+    }
+
+    class UnitTest {
+        <<abstract>>
+    }
+    class SmokeTest {
+        <<abstract>>
+        #String baseUrl
+        ~setUpBaseUrl()
+    }
+    class IntegrationTest {
+        <<abstract>>
+        #String baseUrl
+        ~setUpBaseUrl()
+    }
+    class RegressionTest {
+        <<interface>>
+    }
+    class RunOnProfiles {
+        <<annotation>>
+        +String[] value()
+    }
+    class ProfileCondition {
+        +evaluateExecutionCondition(ExtensionContext) ConditionEvaluationResult
+    }
+    class SkipReasonLogger {
+        +testAborted(ExtensionContext, Throwable)
+        +testDisabled(ExtensionContext, Optional)
+    }
+
+    class GradleTest["gradle test"] {
+        <<Gradle Task>>
+        src/test/unit
+    }
+    class GradleSmokeTest["gradle smokeTest"] {
+        <<Gradle Task>>
+        src/test/smoke
+    }
+    class GradleIntegrationTest["gradle integrationTest"] {
+        <<Gradle Task>>
+        src/test/integration
+    }
+    class GradleRegressionTest["gradle regressionTest"] {
+        <<Gradle Task>>
+        includeTags 'regression'
+    }
+
+    %% JUnit 5 / Mockito Framework Relations
+    Tag <.. UnitTest : @Tag("unit")
+    ExtendWith <.. UnitTest : @ExtendWith(MockitoExtension)
+    MockitoExtension <.. UnitTest : initializes mocks
+    Tag <.. RegressionTest : @Tag("regression")
+
+    ExecutionCondition <|.. ProfileCondition : implements
+    TestWatcher <|.. SkipReasonLogger : implements
+    ExtendWith <.. RunOnProfiles : @ExtendWith(ProfileCondition)
+    RunOnProfiles ..> ProfileCondition : delegates evaluation
+
+    %% Gradle Task Execution Relations
+    GradleTest ..> UnitTest : executes unit suite
+    GradleSmokeTest ..> SmokeTest : executes smoke suite
+    GradleIntegrationTest ..> IntegrationTest : executes integration suite
+    GradleRegressionTest ..> RegressionTest : executes tagged regression tests
+```
+
 ## Project Structure
 
 ```text

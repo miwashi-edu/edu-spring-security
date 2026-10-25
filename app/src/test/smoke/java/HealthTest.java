@@ -10,6 +10,9 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
+/**
+ * Tests targeting endpoint []/actuator/health
+ */
 @ExtendWith(SkipReasonLogger.class)
 public class HealthTest extends SmokeTest {
 
@@ -30,6 +33,7 @@ public class HealthTest extends SmokeTest {
         assumeTrue(gateOpen, "Gatekeeper failed: info endpoint not reachable on " + baseUrl);
     }
 
+    @RunOnProfiles({"dev", "stage"})
     @Test
     void healthEndpointIsAvailable() {
         given()
