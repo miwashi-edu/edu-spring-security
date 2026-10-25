@@ -160,6 +160,9 @@ classDiagram
 
 ## Creating the source sets
 
+> This file is included for learning. Understand how source sets work and how to create them.
+> Also understand classpath and how different source sets are compiled and run.
+
 > [!Note]
 > **Adding source sets**
 > use `apply from: './test-sets.gradle'` just after `plugins` in `build.gradle`.
