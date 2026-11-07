@@ -24,6 +24,20 @@
 │           └── resources
 ```
 
+### No gradle tasks added yet
+
+```bash
+cd ws
+cd edu-spring-security
+gradle tasks
+
+Verification tasks
+------------------
+check - Runs all checks.
+test - Runs the test suite.
+```
+
+
 ## Starting Project Structure
 
 ```text
