@@ -39,6 +39,12 @@ test - Runs the test suite.
 ...
 ```
 
+## Extending junit and rest assured
+
+> In ./src/test/common/java we add `BaseHTttpTest´ to caupture common behaviour from `SmokeTest` and `IntegrationTest` (also included). We also add AuthenticatedUser that matches the backends authorisation
+> requirements (jwt?, crfs-key, payload? .. or what requirement resides?), allowing for us to start a test with `.given(user)`, `.given(admin)`, or `.given(superAdmin)`as of normally unauthenticated and unauthorised `.given()`.
+>
+> This tutorial will teach them at end, while using them trough course.
 
 ## Starting Project Structure
 
