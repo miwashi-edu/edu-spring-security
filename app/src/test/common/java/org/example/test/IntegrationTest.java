@@ -1,55 +1,40 @@
 package org.example.test;
 
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 
 /**
  * Base class for integration tests that communicate with a running application instance.
  *
  * <p><b>Purpose:</b><br>
  * An integration test checks whether different components of an application (such as
- * web controllers, services, databases, or external APIs) work together properly in a live
- * or realistic environment. This class provides the foundational setup required for such tests,
- * specifically by managing the base web address (URL) of the target application.
+ * web controllers, security, services, databases, or external APIs) work together properly
+ * in a live or realistic environment.
  *
  * <p><b>How it works:</b><br>
- * Before each test method runs, this class determines the target URL by checking the
- * Java system property {@code integration.baseUrl}. If that property has not been set,
- * it defaults to {@code http://localhost:8080}. Test methods in child classes can then
- * use the protected {@link #baseUrl} field to send HTTP requests to endpoints.
+ * The backend URL is configured by {@link BaseHttpTest} (environment variable {@code TEST_BACKEND_URL},
+ * default {@code http://localhost:8080}). Before any test runs, all test accounts are logged in;
+ * if the server is unavailable or a login fails, every test in the class is skipped.
  *
  * <p><b>How to use it effectively:</b>
- * <ul>
- *   <li>Extend this class when writing tests that make real network or HTTP calls against
- *       a running server:
- *       <pre>{@code
- *       public class UserApiIntegrationTest extends IntegrationTest {
- *           @Test
- *           void testGetUser() {
- *               // baseUrl is automatically available (e.g. "http://localhost:8080")
- *               given().get(baseUrl + "/users/1").then().statusCode(200);
- *           }
- *       }
- *       }</pre>
- *   </li>
- *   <li>To test against a different host or environment (such as a staging server or Docker
- *       container), configure the system property when running the build, for example:
- *       {@code -Dintegration.baseUrl=http://staging.example.com:8080}.</li>
- * </ul>
+ * <pre>{@code
+ * public class AdminApiIntegrationTest extends IntegrationTest {
+ *     @Test
+ *     void adminCanListUsers() {
+ *         given(admin).when().get("/api/users").then().statusCode(200);
+ *     }
+ *
+ *     @Test
+ *     void userCannotListUsers() {
+ *         given(user).when().get("/api/users").then().statusCode(403);
+ *     }
+ * }
+ * }</pre>
+ * Target another environment with {@code TEST_BACKEND_URL=http://staging.example.com:8080}.
  */
-public abstract class IntegrationTest {
-    /**
-     * The base URL of the running application against which tests will be executed
-     * (e.g., {@code "http://localhost:8080"}).
-     */
-    protected String baseUrl;
+public abstract class IntegrationTest extends BaseHttpTest {
 
-    /**
-     * Sets up the target application's base URL before each test execution by reading
-     * the {@code integration.baseUrl} system property or falling back to {@code "http://localhost:8080"}.
-     */
-    @BeforeEach
-    void setUpBaseUrl() {
-        this.baseUrl = System.getProperty("integration.baseUrl", "http://localhost:8080");
+    @BeforeAll
+    static void authenticateAll() {
+        requireAuthentication();
     }
 }
-

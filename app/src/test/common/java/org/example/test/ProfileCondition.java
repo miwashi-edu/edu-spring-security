@@ -1,6 +1,6 @@
 package org.example.test;
 
-import org.example.test.RunOnProfiles;
+import org.example.Constants;
 import org.junit.jupiter.api.extension.ConditionEvaluationResult;
 import org.junit.jupiter.api.extension.ExecutionCondition;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -28,7 +28,7 @@ import static io.restassured.RestAssured.given;
  *   <li>Inspects the test element (class or method) for the {@link RunOnProfiles} annotation.
  *       If absent, the test is allowed to run unconditionally.</li>
  *   <li>Queries the application's {@code /actuator/info} endpoint to fetch the currently active profile
- *       (e.g., {@code app.profiles}), caching the result across tests for efficiency.</li>
+ *       (e.g., {@code app.profile}), caching the result across tests for efficiency.</li>
  *   <li>Compares the active profile with the list of allowed profiles declared in {@link RunOnProfiles}.
  *       If matched, the test is enabled; otherwise, it is skipped with an explanatory message.</li>
  * </ol>
@@ -60,7 +60,7 @@ public class ProfileCondition implements ExecutionCondition {
 
         String active = ctx.getRoot().getStore(NS).getOrComputeIfAbsent(
                 "profile",
-                k -> given().get("/actuator/info").jsonPath().getString("app.profiles"),
+                k -> given().baseUri(Constants.BACKEND_URL).get("/actuator/info").jsonPath().getString("app.profile"),
                 String.class);
 
         return Arrays.asList(annotation.get().value()).contains(active)

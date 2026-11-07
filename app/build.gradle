@@ -1,39 +1,17 @@
 plugins {
     id 'java'
-    id 'idea'
-    id 'org.springframework.boot' version '3.5.6'
-    id 'io.spring.dependency-management' version '1.1.7'
-    id 'net.miwashi.test-suites' version '1.0.1'
+    id 'org.springframework.boot'
+    id 'io.spring.dependency-management'    //Dependency management in settings.gradle
+    id 'idea'                               // Needed for adding source sets so intellij sees them.
+    id 'net.miwashi.test-suites'            // Used to add source sets, not using gradle DSL.
 }
 
+// Needed for adding source set with test targets (Gradle DSL alternative is messy)
 testSuites {
-    // Black-box suites (no access to main classes/dependencies)
-    blackbox 'smoke'
-    blackbox('integration') {
-        // Specific dependencies isolated to this suite
-        dependencies {
-            implementation 'org.testcontainers:testcontainers:1.19.0'
-            implementation 'org.testcontainers:junit-jupiter:1.19.0'
-        }
-        // Override console output specifically for integration tests
-        consoleLogging = false
-    }
 
-    // White-box suites (access to main classes and dependencies)
-    whitebox 'component', 'contract'
-
-    // Tagged aggregator suites (executes tests matching @Tag across all suites)
-    tagged 'regression'                         // Runs tests with @Tag("regression")
-    tagged name: 'smokeRegression', tag: 'smoke' // Custom task name mapping to specific tag
-
-    // Console logging & reporting controls (target overrides global)
-    consoleLogging = true     // Toggle detailed test logs on console (default: true)
-    consoleReporting = true   // Toggle test result summary on console (default: true)
-
-    // Optional: Harvest test outcomes for BDT requirement finding (silent if omitted)
-    // reportUrl = 'http://localhost:8080/api/test-events'
 }
 
+// Needed for adding source sets so intellij sees them.
 idea {
     module {
         testSources.from(sourceSets.testCommon.java.srcDirs)
@@ -46,36 +24,35 @@ repositories {
 
 dependencies {
     // Spring
-    implementation "org.springframework.boot:spring-boot-starter-web"
-    implementation "org.springframework.boot:spring-boot-starter-thymeleaf"
-    implementation "org.springframework.boot:spring-boot-starter-actuator"
-    developmentOnly "org.springframework.boot:spring-boot-devtools"
+    implementation "org.springframework.boot:spring-boot-starter-web"           // RESTful webservices
+    implementation "org.springframework.boot:spring-boot-starter-thymeleaf"     // Dynamic HTML
+    implementation "org.springframework.boot:spring-boot-starter-actuator"      // Providing /health and /info endpoints
+    developmentOnly "org.springframework.boot:spring-boot-devtools"             // Hot deployment
 
     // Logging
-    implementation "ch.qos.logback:logback-classic:1.5.19"
-    implementation "ch.qos.logback:logback-core:1.5.19"
-    implementation "ch.qos.logback.access:logback-access-tomcat:2.0.6"
-    implementation "dev.akkinoc.spring.boot:logback-access-spring-boot-starter:4.7.0"
-    implementation "net.logstash.logback:logstash-logback-encoder:8.1"
+    implementation libs.logback.classic
+    implementation libs.logback.core
+    implementation libs.logback.access.tomcat
+    implementation libs.logback.access.spring.boot.starter
+    implementation libs.logstash.logback.encoder
 
 
-    // OpenAPI / Swagger
-    implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.14"
+    // OpenAPI / Swagger - Added for visualisation of API
+    implementation libs.springdoc.openapi
 
-    // Test
-    //testImplementation libs.junit.jupiter
+    // Test Junit - Jupiter, Rest Assured, and Mockito
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    testImplementation ("io.rest-assured:rest-assured:5.5.6") {
+    testImplementation (libs.rest.assured.core) {
         exclude group: "commons-logging", module: "commons-logging"
     }
-    testImplementation "io.rest-assured:json-schema-validator:5.5.6"
+    testImplementation libs.rest.assured.json.schema.validator
     testImplementation 'org.mockito:mockito-junit-jupiter'
 }
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion = JavaLanguageVersion.of(libs.versions.java.get().toInteger())
     }
 }
 
@@ -83,6 +60,7 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
+// bootRun target modified to to run server in dev mode
 tasks.register('bootRunDev', JavaExec) {
     group = 'application'
     description = 'Runs the Spring Boot application with DEV environment'
@@ -93,6 +71,7 @@ tasks.register('bootRunDev', JavaExec) {
     environment 'SPRING_PROFILES_ACTIVE', 'dev'
 }
 
+// bootRun target modified to to run server in stage mode
 tasks.register('bootRunStage', JavaExec) {
     group = 'application'
     description = 'Runs the Spring Boot application with DEV environment'
