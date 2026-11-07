@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="Gradle: ch.qos.logback.access:logback-access-tomcat:2.0.6" type="java-imported" external-system-id="GRADLE">
+    <properties groupId="ch.qos.logback.access" artifactId="logback-access-tomcat" version="2.0.6" baseVersion="2.0.6" />
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/ch.qos.logback.access/logback-access-tomcat/2.0.6/b00ba64b92437c26c74707be502d26e1ae7cdda4/logback-access-tomcat-2.0.6.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/ch.qos.logback.access/logback-access-tomcat/2.0.6/fa6409cc4ade86f283477499b264e176db21f780/logback-access-tomcat-2.0.6-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

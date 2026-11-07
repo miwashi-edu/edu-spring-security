@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="Gradle: io.rest-assured:xml-path:5.5.6" type="java-imported" external-system-id="GRADLE">
+    <properties groupId="io.rest-assured" artifactId="xml-path" version="5.5.6" baseVersion="5.5.6" />
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.rest-assured/xml-path/5.5.6/f05b964e3a2eea738a254f1c44d5dbba0ca57b1/xml-path-5.5.6.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.rest-assured/xml-path/5.5.6/e5daadabe16a8411d72d794404979f8155d58101/xml-path-5.5.6-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
