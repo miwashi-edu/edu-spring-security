@@ -3,8 +3,37 @@ plugins {
     id 'idea'
     id 'org.springframework.boot' version '3.5.6'
     id 'io.spring.dependency-management' version '1.1.7'
+    id 'net.miwashi.test-suites' version '1.0.1'
 }
-apply from: './test-sets.gradle'
+
+testSuites {
+    // Black-box suites (no access to main classes/dependencies)
+    blackbox 'smoke'
+    blackbox('integration') {
+        // Specific dependencies isolated to this suite
+        dependencies {
+            implementation 'org.testcontainers:testcontainers:1.19.0'
+            implementation 'org.testcontainers:junit-jupiter:1.19.0'
+        }
+        // Override console output specifically for integration tests
+        consoleLogging = false
+    }
+
+    // White-box suites (access to main classes and dependencies)
+    whitebox 'component', 'contract'
+
+    // Tagged aggregator suites (executes tests matching @Tag across all suites)
+    tagged 'regression'                         // Runs tests with @Tag("regression")
+    tagged name: 'smokeRegression', tag: 'smoke' // Custom task name mapping to specific tag
+
+    // Console logging & reporting controls (target overrides global)
+    consoleLogging = true     // Toggle detailed test logs on console (default: true)
+    consoleReporting = true   // Toggle test result summary on console (default: true)
+
+    // Optional: Harvest test outcomes for BDT requirement finding (silent if omitted)
+    // reportUrl = 'http://localhost:8080/api/test-events'
+}
+
 idea {
     module {
         testSources.from(sourceSets.testCommon.java.srcDirs)
