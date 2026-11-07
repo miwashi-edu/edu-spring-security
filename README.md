@@ -5,97 +5,54 @@
 > The goal of this tutorial is to provide a comprehensive, JUnit 5-based testing framework and workflow for building secure Spring Boot applications.
 > In addition to configuring application services, mastering the specialized test base classes and annotations is essential for achieving robust, high-value test coverage across unit, smoke, integration, and regression suites.
 
-## Test Architecture
+## Plugin net.miwashi.test-suites
 
-```mermaid
-classDiagram
-    direction TB
+> The plugin offers test-suite support. Anything it does can be achieved with `Gradle DSL`, but as the purpose of this tutorial is not DSL, but [REST Assured](https://rest-assured.io). and [BDT](https://dannorth.net/blog/introducing-bdd/).
+> When applied it alters `classpath` for the build, pushing tests into specialised folders, and making `./src/test/common` the `common testing folder`. It also creates the folders `java` and `resources` when needed.
 
-    class Tag {
-        <<annotation>>
-        +String value
-    }
-    class ExtendWith {
-        <<annotation>>
-        +Class value
-    }
-    class ExecutionCondition {
-        <<interface>>
-        +evaluateExecutionCondition(ExtensionContext) ConditionEvaluationResult
-    }
-    class TestWatcher {
-        <<interface>>
-        +testAborted(ExtensionContext, Throwable)
-        +testDisabled(ExtensionContext, Optional)
-    }
-    class MockitoExtension {
-        <<extension>>
-    }
+### Modification from adding plugin with no configuration
 
-    class UnitTest {
-        <<abstract>>
-    }
-    class SmokeTest {
-        <<abstract>>
-        #String baseUrl
-        ~setUpBaseUrl()
-    }
-    class IntegrationTest {
-        <<abstract>>
-        #String baseUrl
-        ~setUpBaseUrl()
-    }
-    class RegressionTest {
-        <<interface>>
-    }
-    class RunOnProfiles {
-        <<annotation>>
-        +String[] value()
-    }
-    class ProfileCondition {
-        +evaluateExecutionCondition(ExtensionContext) ConditionEvaluationResult
-    }
-    class SkipReasonLogger {
-        +testAborted(ExtensionContext, Throwable)
-        +testDisabled(ExtensionContext, Optional)
-    }
-
-    class GradleTest["gradle test"] {
-        <<Gradle Task>>
-        src/test/unit
-    }
-    class GradleSmokeTest["gradle smokeTest"] {
-        <<Gradle Task>>
-        src/test/smoke
-    }
-    class GradleIntegrationTest["gradle integrationTest"] {
-        <<Gradle Task>>
-        src/test/integration
-    }
-    class GradleRegressionTest["gradle regressionTest"] {
-        <<Gradle Task>>
-        includeTags 'regression'
-    }
-
-    %% JUnit 5 / Mockito Framework Relations
-    Tag <.. UnitTest : @Tag("unit")
-    ExtendWith <.. UnitTest : @ExtendWith(MockitoExtension)
-    MockitoExtension <.. UnitTest : initializes mocks
-    Tag <.. RegressionTest : @Tag("regression")
-
-    ExecutionCondition <|.. ProfileCondition : implements
-    TestWatcher <|.. SkipReasonLogger : implements
-    ExtendWith <.. RunOnProfiles : @ExtendWith(ProfileCondition)
-    RunOnProfiles ..> ProfileCondition : delegates evaluation
-
-    %% Gradle Task Execution Relations
-    GradleTest ..> UnitTest : executes unit suite
-    GradleSmokeTest ..> SmokeTest : executes smoke suite
-    GradleIntegrationTest ..> IntegrationTest : executes integration suite
-    GradleRegressionTest ..> RegressionTest : executes tagged regression tests
+```text
+.
+├── app
+│   └── src
+│       └── common [testCommon]
+│           ├── java
+│           └── resources
+│       └── test [test]
+│           ├── java
+│           └── resources
 ```
 
-## Project Structure
+## Starting Project Structure
+
+```text
+.
+├── gradle.properties
+├── LICENSE
+├── README.md
+├── settings.gradle # defines the project’s name and included modules, and is read before build.gradle
+├── app # A module included from settings.gradle
+│   ├── build.gradle
+│   └── src
+│       ├── main
+│       │   ├── java
+│       │   │   └── org
+│       │   │       └── example
+│       │   │           └── App.java
+│       │   └── resources
+│       │       ├── application.yaml # production settings
+│       │       └── templates
+│       │           ├── error
+│       │           │   └── 404.html
+│       │           ├── error.html
+│       │           └── index.html
+│       └── test
+│           ├── java
+│           └── resources
+```
+
+## Final Project Structure
 
 ```text
 .
@@ -142,25 +99,9 @@ classDiagram
 │               └── resources
 ```
 
-> [!Note]
-> **Unit tests**
-> `Unit tests`: Whitebox tests that check one small piece of code on its own, like testing a single gear outside the machine. Whitebox means the test knows how the code is built inside. They are fast, need no running application, and tell you exactly which piece is broken.
+## Creating the source sets - not using plugin - (over course!)
 
-> [!Note]
-> **Smoke tests**
-> `Smoke tests`: Blackbox tests that quickly check that the running application starts and its most basic functions respond, like turning on a new appliance to see that it powers up. Blackbox means the test only sees the application from the outside. If these fail, there's no point running the rest.
-
-> [!Note]
-> **Integration tests**
-> `Integration tests`: Blackbox tests that check the application across an integration point, the place where it meets something else, like a database, another service or an external API. The test itself doesn't decide what is behind that point; the environment does. The same test can run against mocked internals or against the real, integrated ones.
-
-> [!Note]
-> **Regression tests**
-> `Regression tests`: A selected set of tests that guard against old bugs coming back and already-working features breaking after a change. They are picked from the other test types, so they can be both whitebox and blackbox, and are marked with `@Regression`.
-
-## Creating the source sets
-
-> This file is included for learning. Understand how source sets work and how to create them.
+> This file is included for learning, not for doing. Understand how source sets work and how to create them.
 > Also understand classpath and how different source sets are compiled and run.
 
 > [!Note]
