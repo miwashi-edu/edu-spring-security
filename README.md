@@ -1,231 +1,124 @@
 # edu-spring-security
 
-## Overview
+## Task: Smoke Test
 
-> The goal of this tutorial is to provide a comprehensive, JUnit 5-based testing framework and workflow for building secure Spring Boot applications.
-> In addition to configuring application services, mastering the specialized test base classes and annotations is essential for achieving robust, high-value test coverage across unit, smoke, integration, and regression suites.
+> Write the first smoke test of the system. A smoke test verifies that the system is up and that its basic, non-functional services respond. Spring Actuator's health endpoint is well suited for this.
 
-## Plugin net.miwashi.test-suites
+Note: `application.properties` closes all actuator endpoints. Solve this permanently in the configuration, not with a workaround for a single run.
 
-> The plugin offers test-suite support. Anything it does can be achieved with `Gradle DSL`, but as the purpose of this tutorial is not DSL, but [REST Assured](https://rest-assured.io). and [BDT](https://dannorth.net/blog/introducing-bdd/).
-> When applied it alters `classpath` for the build, pushing tests into specialised folders, and making `./src/test/common` the `common testing folder`. It also creates the folders `java` and `resources` when needed.
+### Hints
 
-### Modification from adding plugin with no configuration
+- Use profile-specific configuration: `application-dev.properties`, `application-stage.properties` and `application-prod.properties`.
+- This is a blackbox test suite. It runs against an already running server.
+- `SmokeTest` is an abstract superclass that holds the shared setup for all smoke tests.
 
-```text
-.
-├── app
-│   └── src
-│       └── common [testCommon]
-│           ├── java
-│           └── resources
-│       └── test [test]
-│           ├── java
-│           └── resources
+## Requirements
+
+## Requirements
+
+### SMOKE-01: Health endpoint reports UP
+
+> The health endpoint responds with status `UP`.
+
+```java
+@Test
+void healthEndpointReportsUp() {
+    given()
+        .baseUri("http://localhost:8080")
+    .when()
+        .get("/actuator/health")
+    .then()
+        .statusCode(200)
+        .body("status", equalTo("UP"));
+}
 ```
 
-### No gradle tasks added yet
+### SMOKE-02: Health endpoint responds with JSON
 
-```bash
-cd ws
-cd edu-spring-security
-gradle tasks
+> The health endpoint returns its status as JSON.
 
-...
-Verification tasks
-------------------
-check - Runs all checks.
-test - Runs the test suite.
-...
+```java
+@Test
+void healthEndpointRespondsWithJson() {
+    given()
+        .baseUri("http://localhost:8080")
+    .when()
+        .get("/actuator/health")
+    .then()
+        .statusCode(200)
+        .contentType(containsString("json"));
+}
 ```
 
-## Extending junit and rest assured
+### SMOKE-03: Health endpoint responds quickly
 
-> In ./src/test/common/java we add `BaseHTttpTest´ to caupture common behaviour from `SmokeTest` and `IntegrationTest` (also included). We also add AuthenticatedUser that matches the backends authorisation
-> requirements (jwt?, crfs-key, payload? .. or what requirement resides?), allowing for us to start a test with `.given(user)`, `.given(admin)`, or `.given(superAdmin)`as of normally unauthenticated and unauthorised `.given()`.
->
-> This tutorial will teach them at end, while using them trough course.
+> The health endpoint responds within 2 seconds.
 
-## Starting Project Structure
-
-```text
-.
-├── gradle.properties
-├── LICENSE
-├── README.md
-├── settings.gradle # defines the project’s name and included modules, and is read before build.gradle
-├── app # A module included from settings.gradle
-│   ├── build.gradle
-│   └── src
-│       ├── main
-│       │   ├── java
-│       │   │   └── org
-│       │   │       └── example
-│       │   │           └── App.java
-│       │   └── resources
-│       │       ├── application.yaml # production settings
-│       │       └── templates
-│       │           ├── error
-│       │           │   └── 404.html
-│       │           ├── error.html
-│       │           └── index.html
-│       └── test
-│           ├── java
-│           └── resources
+```java
+@Test
+void healthEndpointRespondsWithinTwoSeconds() {
+    given()
+        .baseUri("http://localhost:8080")
+    .when()
+        .get("/actuator/health")
+    .then()
+        .statusCode(200)
+        .time(lessThan(2000L));
+}
 ```
 
-## Final Project Structure
+### SMOKE-04: Info endpoint reports active profile
 
-```text
-.
-├── gradle.properties
-├── LICENSE
-├── README.md
-├── settings.gradle # defines the project’s name and included modules, and is read before build.gradle
-├── app # A module included from settings.gradle
-│   ├── build.gradle
-│   └── src
-│       ├── main
-│       │   ├── java
-│       │   │   └── org
-│       │   │       └── example
-│       │   │           └── App.java
-│       │   └── resources
-│       │       ├── application-dev.yaml # increase testability by lessening security
-│       │       ├── application-prod.yaml # most often not used
-│       │       ├── application-stage.yaml # increase testability by lessening security
-│       │       ├── application.yaml # production settings
-│       │       └── templates
-│       │           ├── error
-│       │           │   └── 404.html
-│       │           ├── error.html
-│       │           └── index.html
-│       └── test
-│           ├── common # No tests, only common code for testing
-│           │   ├── java
-│           │   │   └── org
-│           │   │       └── example
-│           │   │           ├── IntegrationTest.java
-│           │   │           ├── RegressionTest.java # Interface
-│           │   │           ├── SmokeTest.java
-│           │   │           └── UnitTest.java
-│           │   └── resources # common test resources
-│           ├── integration # Tests for purpose integration testing
-│           │   ├── java
-│           │   └── resources
-│           ├── smoke # Tests for purpose smoke testing
-│           │   ├── java
-│           │   └── resources
-│           └── unit # Tests for purpose unit testing
-│               ├── java
-│               └── resources
+> The info endpoint is open and reports which profile the server runs in.
+
+```java
+@Test
+void infoEndpointReportsActiveProfile() {
+    given()
+        .baseUri("http://localhost:8080")
+    .when()
+        .get("/actuator/info")
+    .then()
+        .statusCode(200)
+        .body("profile", anyOf(equalTo("dev"), equalTo("stage")));
+}
 ```
 
-## Creating the source sets - not using plugin - (over course!)
+### SMOKE-05: Sensitive actuator endpoints stay closed
 
-> This file is included for learning, not for doing. Understand how source sets work and how to create them.
-> Also understand classpath and how different source sets are compiled and run.
+> Only the health and info endpoints are open; sensitive endpoints such as `env` are not exposed.
 
-> [!Note]
-> **Adding source sets**
-> use `apply from: './test-sets.gradle'` just after `plugins` in `build.gradle`.
-
-
+```java
+@Test
+void envEndpointIsNotExposed() {
+    given()
+        .baseUri("http://localhost:8080")
+    .when()
+        .get("/actuator/env")
+    .then()
+        .statusCode(404);
+}
 ```
-cd ws
-cd [spring boot project]
-cat > ./app/test-sets.gradle << 'EOF'
-def hasCommon = file('src/test/common').exists()
 
-if (hasCommon) {
-    sourceSets.create('testCommon') {
-        java.srcDirs = ['src/test/common/java']
-        resources.srcDirs = ['src/test/common/resources']
-    }
-    configurations {
-        testCommonImplementation.extendsFrom testImplementation
-        testCommonRuntimeOnly.extendsFrom testRuntimeOnly
-    }
+### SMOKE-06: Unknown paths return 404
+
+> The server answers unknown paths with 404 instead of an error or a redirect.
+
+```java
+@Test
+void unknownPathReturnsNotFound() {
+    given()
+        .baseUri("http://localhost:8080")
+    .when()
+        .get("/this-path-does-not-exist")
+    .then()
+        .statusCode(404);
 }
-
-def commonOutput = hasCommon ? sourceSets.testCommon.output : files()
-
-// White-box: unit tests see main + common
-sourceSets {
-    test {
-        java.srcDirs = ['src/test/unit/java']
-        resources.srcDirs = ['src/test/unit/resources']
-        compileClasspath += commonOutput
-        runtimeClasspath += commonOutput
-    }
-}
-
-tasks.named('test') {
-    useJUnitPlatform()
-}
-
-def suites = [unit: sourceSets.test]
-
-// Black-box: only common + test dependencies, no main
-['smoke', 'integration'].each { name ->
-    if (!file("src/test/${name}").exists()) return
-
-    def ss = sourceSets.create("${name}Test") {
-        java.srcDirs = ["src/test/${name}/java"]
-        resources.srcDirs = ["src/test/${name}/resources"]
-        compileClasspath = commonOutput + configurations["${name}TestCompileClasspath"]
-        runtimeClasspath = output + commonOutput + configurations["${name}TestRuntimeClasspath"]
-    }
-
-    configurations["${name}TestImplementation"].extendsFrom configurations.testImplementation
-    configurations["${name}TestRuntimeOnly"].extendsFrom configurations.testRuntimeOnly
-
-    suites[name] = ss
-
-    def task = tasks.register("${name}Test", Test) {
-        description = "Runs ${name} tests."
-        group = 'verification'
-        testClassesDirs = ss.output.classesDirs
-        classpath = ss.runtimeClasspath
-        useJUnitPlatform()
-        shouldRunAfter tasks.named('test')
-    }
-
-    tasks.named('check') { dependsOn task }
-}
-
-// Regression: @Regression-tagged tests from all suites, one task
-tasks.register('regressionTest', Test) {
-    description = 'Runs @Regression tests from all suites.'
-    group = 'verification'
-    testClassesDirs = files(suites.values().collect { it.output.classesDirs })
-    classpath = files(suites.values().collect { it.runtimeClasspath })
-    useJUnitPlatform { includeTags 'regression' }
-}
-
-// Shared settings for all test tasks
-tasks.withType(Test).configureEach {
-    ['smoke', 'integration'].each { n ->
-        systemProperty "${n}.baseUrl", findProperty("${n}.baseUrl") ?: 'http://localhost:8080'
-    }
-
-    testLogging {
-        events 'started', 'passed', 'skipped', 'failed', 'standardOut', 'standardError'
-        exceptionFormat = 'full'
-        showExceptions = true
-        showCauses = true
-        showStackTraces = true
-        showStandardStreams = true
-    }
-
-    def taskName = name
-    afterSuite { desc, result ->
-        if (!desc.parent) {
-            System.out.println("\n" + taskName + ": " + result.resultType +
-                    " (" + result.testCount + " tests, " + result.successfulTestCount + " passed, " +
-                    result.failedTestCount + " failed, " + result.skippedTestCount + " skipped)")
-        }
-    }
-}
-EOF
 ```
+
+## Definition of Done
+
+- The test runs with `gradle smokeTest`.
+- The test passes.
+- The suite runs only when the responding server uses the `dev` or `stage` profile.
+- The suite is skipped, not failed, when the server runs with any other profile, and reports why it was skipped.
