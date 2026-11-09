@@ -8,7 +8,6 @@ import io.restassured.response.Response;
 import io.restassured.specification.FilterableRequestSpecification;
 import io.restassured.specification.FilterableResponseSpecification;
 import io.restassured.specification.RequestSpecification;
-import org.example.Constants;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -33,8 +32,8 @@ import static io.restassured.RestAssured.given;
  *   <li>No token yet → log in ({@code POST} {@link Constants#ENDPOINT_AUTH}).</li>
  *   <li>Token (JWT {@code exp} claim) expires within {@link Constants#REFRESH_MARGIN_SECONDS} → refresh
  *       proactively before sending, so non-idempotent requests rarely need a retry.</li>
- *   <li>Server still answers 401 → refresh ({@code GET} {@link Constants#API_REFRESH} with the
- *       refresh cookie); if that fails, log in again. Then retry the request once.</li>
+ *   <li>Server still answers 401 → refresh ({@code POST} {@link Constants#API_REFRESH} with the
+ *       refresh cookie and a CSRF token); if that fails, log in again. Then retry the request once.</li>
  * </ol>
  * Login/refresh calls use plain {@code given()} (without the filter), so they never recurse.
  */
@@ -109,16 +108,13 @@ public class AuthenticatedUser {
             return true; // already refreshed by a concurrent request
         }
 
-        RequestSpecification req = given();
-        if (jwtToken != null) {
-            req.header(Constants.HEADER_AUTHORIZATION, Constants.BEARER_PREFIX + jwtToken);
-        }
-        if (refreshCookie != null) {
-            req.cookie(Constants.COOKIE_REFRESH_TOKEN, refreshCookie);
-        }
-
         try {
-            Response r = req.when().get(Constants.API_REFRESH);
+            // Refresh is cookie-authenticated, so it needs a CSRF token (double submit)
+            RequestSpecification req = Csrf.fetch().apply(given());
+            if (refreshCookie != null) {
+                req.cookie(Constants.COOKIE_REFRESH_TOKEN, refreshCookie);
+            }
+            Response r = req.when().post(Constants.API_REFRESH);
             String token = r.getStatusCode() == 200 ? r.path(Constants.JSON_KEY_OBJECT) : null;
             if (token != null) {
                 this.jwtToken = token;

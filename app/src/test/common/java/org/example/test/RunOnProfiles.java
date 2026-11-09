@@ -18,10 +18,10 @@ import java.lang.annotation.Target;
  *
  * <p><b>How it works:</b><br>
  * This annotation is linked to {@link ProfileCondition} via {@link ExtendWith @ExtendWith}.
- * Before running any annotated test class or test method, the framework checks the running
- * application's active profile (retrieved via {@code /actuator/info}). If the active profile
- * matches any of the values passed to this annotation, the test executes normally. Otherwise,
- * the test is automatically skipped without failing the build.
+ * Before running any annotated test class or test method, the framework compares the profile
+ * the test run targets (environment variable {@code TEST_PROFILE}, default {@code dev}) with the
+ * values passed to this annotation. If it matches, the test executes normally. Otherwise, the
+ * test is automatically skipped without failing the build.
  *
  * <p><b>How to use it effectively:</b>
  * <ul>

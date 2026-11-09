@@ -2,8 +2,8 @@ package org.example.test;
 
 import io.restassured.RestAssured;
 import io.restassured.specification.RequestSpecification;
-import org.example.Constants;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.TestMethodOrder;
 
@@ -27,10 +27,14 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
  * }</pre>
  * Each user keeps its JWT access token and refresh cookie for the whole JVM run; tokens are
  * injected per request and refreshed automatically on 401 (see {@link AuthenticatedUser}).
+ * Test names are shown as spoken requirements ({@link RequirementSentenceGenerator}):
+ * {@code ActuatorExposureTest.shouldNotRevealUnusedPaths()} reads
+ * "Actuator exposure should not reveal unused paths".
  * Subclasses that require working credentials call {@link #requireAuthentication()} from a
  * {@code @BeforeAll}; all tests in that class are then skipped if login fails.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@DisplayNameGeneration(RequirementSentenceGenerator.class)
 public abstract class BaseHttpTest {
 
     /** Base URL of the backend under test. */

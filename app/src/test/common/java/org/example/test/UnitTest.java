@@ -1,5 +1,6 @@
 package org.example.test;
 
+import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -46,6 +47,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * </ul>
  */
 @Tag("unit")
+@DisplayNameGeneration(RequirementSentenceGenerator.class)
 @ExtendWith(MockitoExtension.class)
 public abstract class UnitTest {
 }

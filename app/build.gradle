@@ -8,7 +8,9 @@ plugins {
 
 // Needed for adding source set with test targets (Gradle DSL alternative is messy)
 testSuites {
-
+    blackbox 'smoke'    // app/src/test/smoke — black-box tests against a running server (docs/requirements)
+    blackbox 'security'
+    blackbox 'integration'
 }
 
 // Needed for adding source sets so intellij sees them.
